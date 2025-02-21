@@ -66,7 +66,7 @@ class _CartWidgetState extends State<CartWidget> {
                         padding: EdgeInsets.all(16),
                         itemCount: cart.items.length,
                         itemBuilder: (context, index) {
-                          final CartItem item = cart.items[index];
+                          final CartItem item = cart.items.values.toList()[index];
                           return Dismissible(
                             key: Key(item.id),
                             direction: DismissDirection.endToStart,
@@ -87,7 +87,13 @@ class _CartWidgetState extends State<CartWidget> {
                                   action: SnackBarAction(
                                     label: 'UNDO',
                                     onPressed: () {
-                                      cart.addItem(item);
+                                      cart.addItem(
+                                        item.id,
+                                        item.price,
+                                        item.title,
+                                        item.image,
+                                        author: item.author,
+                                      );
                                     },
                                   ),
                                 ),

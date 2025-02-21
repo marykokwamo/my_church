@@ -1,18 +1,22 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../landing/landing_widget.dart';
 import '../sermons/sermons_widget.dart';
 import '../live_tv/live_tv_widget.dart';
 import '../give/give_widget.dart';
 import '../widgets/custom_app_bar.dart';
+// ignore: unused_import
 import '../flutter_flow/flutter_flow_util.dart';
 import '../design_system/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BaseLayoutWidget extends StatefulWidget {
   final int initialIndex;
   final bool showAppBar;
-  
+
   const BaseLayoutWidget({
     Key? key,
     this.initialIndex = 0,
@@ -26,7 +30,7 @@ class BaseLayoutWidget extends StatefulWidget {
 class _BaseLayoutWidgetState extends State<BaseLayoutWidget> {
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
+
   final List<Widget> _pages = [
     LandingWidget(),
     GiveWidget(),
@@ -52,15 +56,13 @@ class _BaseLayoutWidgetState extends State<BaseLayoutWidget> {
     return Scaffold(
       key: _scaffoldKey,
       extendBodyBehindAppBar: true,
-      appBar: widget.showAppBar && _currentIndex != 0 
-          ? CustomAppBar(
-              title: _titles[_currentIndex],
-              showBackButton: false,
-              showDrawerButton: true,
-              scaffoldKey: _scaffoldKey,
-              notificationCount: 3,
-            )
-          : null,
+      appBar: CustomAppBar(
+        title: _titles[_currentIndex],
+        showBackButton: false,
+        showDrawerButton: true,
+        scaffoldKey: _scaffoldKey,
+        notificationCount: 3,
+      ),
       drawer: _buildDrawer(),
       body: SizedBox(
         height: MediaQuery.of(context).size.height,
@@ -116,98 +118,159 @@ class _BaseLayoutWidgetState extends State<BaseLayoutWidget> {
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      child: Column(
-        children: [
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF2B2B2B), Color(0xFF000000)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.7,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.98),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Header with back arrow
+            Container(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 50, color: Colors.black),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'MENU',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.black87,
+                      size: 20,
                     ),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.home),
-                  title: Text('Home'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.live_tv),
-                  title: Text('Live TV'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/live-tv');
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.video_library),
-                  title: Text('Sermons'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/sermons');
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.event),
-                  title: Text('Events'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/events');
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.book),
-                  title: Text('Devotions'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/devotions');
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.shopping_cart),
-                  title: Text('Shop'),
-                  onTap: () {
-                    Navigator.pushNamed(context, '/shop');
-                  },
-                ),
-              ],
+            
+            // Menu Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.only(top: 8),
+                children: [
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/checkin.svg',
+                    title: 'Checkin',
+                    onTap: () {
+                      context.pop();
+                      context.go('/checkin');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/prayer_requests.svg',
+                    title: 'Prayer Requests',
+                    onTap: () {
+                      context.pop();
+                      context.go('/prayer-requests');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/devotions.svg',
+                    title: 'Devotions',
+                    onTap: () {
+                      context.pop();
+                      context.go('/devotions');
+                    },
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Colors.grey[300],
+                    ),
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/events_calendar.svg',
+                    title: 'Events Calendar',
+                    onTap: () {
+                      context.pop();
+                      context.go('/events-calendar');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/my_events_qr.svg',
+                    title: 'My Events QR',
+                    onTap: () {
+                      context.pop();
+                      context.go('/my-events-qr');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/shop.svg',
+                    title: 'Shop',
+                    onTap: () {
+                      context.pop();
+                      context.go('/shop');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    iconPath: 'assets/icons/announcements.svg',
+                    title: 'Announcements',
+                    onTap: () {
+                      context.pop();
+                      context.go('/announcements');
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Image.asset(
-              'assets/images/MyChurch -logo color.png',
-              height: 60,
-              fit: BoxFit.contain,
+            
+            // Logo at bottom
+            Padding(
+              padding: EdgeInsets.all(24),
+              child: Image.asset(
+                'assets/images/MyChurch -logo color.png', // You can replace this with SVG when ready
+                height: 40,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required String iconPath,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              child: SvgPicture.asset(
+                iconPath,
+                fit: BoxFit.contain,
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

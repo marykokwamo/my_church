@@ -6,6 +6,13 @@ import 'package:provider/provider.dart';
 import '/index.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/notifications/notifications_widget.dart';
+import '/checkin/checkin_widget.dart';
+import '/prayer_requests/prayer_requests_widget.dart';
+import '/devotions/devotions_widget.dart';
+import '/events_calendar/events_calendar_widget.dart';
+import '/my_events_qr/my_events_qr_widget.dart';
+import '/shop/shop_widget.dart';
+import '/announcements/announcements_widget.dart';
 
 export 'package:go_router/go_router.dart';
 export 'serialization_util.dart';
@@ -178,6 +185,41 @@ GoRouter createRouter(AppStateNotifier appStateNotifier) => GoRouter(
               name: 'profile',
               path: 'profile',
               builder: (context, params) => ProfileWidget(),
+            ),
+            FFRoute(
+              name: 'checkin',
+              path: 'checkin',
+              builder: (context, params) => CheckinWidget(),
+            ),
+            FFRoute(
+              name: 'prayer-requests',
+              path: 'prayer-requests',
+              builder: (context, params) => PrayerRequestsWidget(),
+            ),
+            FFRoute(
+              name: 'devotions',
+              path: 'devotions',
+              builder: (context, params) => DevotionsWidget(),
+            ),
+            FFRoute(
+              name: 'events',
+              path: 'events-calendar',
+              builder: (context, params) => EventsCalendarWidget(),
+            ),
+            FFRoute(
+              name: 'my-events-qr',
+              path: 'my-events-qr',
+              builder: (context, params) => MyEventsQRWidget(),
+            ),
+            FFRoute(
+              name: 'shop',
+              path: 'shop',
+              builder: (context, params) => ShopWidget(),
+            ),
+            FFRoute(
+              name: 'announcements',
+              path: 'announcements',
+              builder: (context, params) => AnnouncementsWidget(),
             ),
           ].map((r) => r.toRoute(appStateNotifier)).toList(),
         ),

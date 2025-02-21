@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../widgets/custom_app_bar.dart';
 
@@ -18,7 +19,10 @@ class _AnnouncementsWidgetState extends State<AnnouncementsWidget> {
         showBackButton: true,
       ),
       body: Center(
-        child: Text('Announcements Coming Soon'),
+        child: Text(
+          'Announcements Coming Soon',
+          style: FlutterFlowTheme.of(context).bodyMedium,
+        ),
       ),
     );
   }

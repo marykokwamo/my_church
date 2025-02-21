@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-
-import '/flutter_flow/flutter_flow_theme.dart';
+import 'package:provider/provider.dart';
+import '/services/app_state.dart';
+import '/design_system/app_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/internationalization.dart';
-import '/design_system/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GoRouter.optionURLReflectsImperativeAPIs = true;
   usePathUrlStrategy();
 
-  await FlutterFlowTheme.initialize();
+  // Configure system UI
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+    overlays: [SystemUiOverlay.top],
+  );
 
+  await AppTheme.initializeThemeMode();
   runApp(MyApp());
 }
 
@@ -28,7 +40,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale? _locale;
-  ThemeMode _themeMode = FlutterFlowTheme.themeMode;
+  ThemeMode _themeMode = AppTheme.themeMode;
 
   late AppStateNotifier _appStateNotifier;
   late GoRouter _router;
@@ -52,41 +64,62 @@ class _MyAppState extends State<MyApp> {
 
   void setThemeMode(ThemeMode mode) => setState(() {
         _themeMode = mode;
-        FlutterFlowTheme.saveThemeMode(mode);
+        AppTheme.saveThemeMode(mode);
       });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'MyChurch',
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: [
-        FFLocalizationsDelegate(),
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      locale: _locale,
-      supportedLocales: const [Locale('en', '')],
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: _themeMode,
-      routerConfig: _router,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            color: FlutterFlowTheme.of(context).primary,
+    return ChangeNotifierProvider(
+      create: (_) => AppState(),
+      child: MaterialApp.router(
+        title: 'MyChurch App',
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          FFLocalizationsDelegate(),
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        locale: _locale,
+        supportedLocales: const [Locale('en', '')],
+        theme: AppTheme.getLightTheme().copyWith(
+          platform: TargetPlatform.iOS,
+          scaffoldBackgroundColor: Colors.transparent,
+          appBarTheme: AppBarTheme(
+            systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
+            ),
           ),
-          child: MediaQuery(
+        ),
+        darkTheme: AppTheme.getDarkTheme().copyWith(
+          platform: TargetPlatform.iOS,
+          scaffoldBackgroundColor: Colors.transparent,
+          appBarTheme: AppBarTheme(
+            systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+              statusBarColor: Colors.transparent,
+            ),
+          ),
+        ),
+        themeMode: _themeMode,
+        routerConfig: _router,
+        builder: (context, child) {
+          return MediaQuery(
             data: MediaQuery.of(context).copyWith(
               textScaleFactor: 1.0,
+              padding: EdgeInsets.zero,
+              viewInsets: EdgeInsets.zero,
             ),
-            child: SizedBox.expand(
-              child: child!,
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              child: Container(
+                color: _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
+                child: child!,
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

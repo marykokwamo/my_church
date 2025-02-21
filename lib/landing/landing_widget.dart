@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
-import '../widgets/custom_app_bar.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:provider/provider.dart';
-import '../shop/shop_widget.dart';
-import '../providers/cart_provider.dart';
 import 'landing_model.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../flutter_flow/flutter_flow_icon_button.dart';
+// ignore: unused_import
 import '../models/cart_item.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 export 'landing_model.dart';
 
 class LandingWidget extends StatefulWidget {
@@ -23,7 +19,8 @@ class LandingWidget extends StatefulWidget {
 class _LandingWidgetState extends State<LandingWidget> {
   late LandingModel _model;
   late YoutubePlayerController _youtubeController;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isPlaying = false;
+  bool _showPlayButton = true;
 
   final List<String> sermonSlides = [
     'assets/images/Slide1.png',
@@ -78,397 +75,364 @@ class _LandingWidgetState extends State<LandingWidget> {
       flags: YoutubePlayerFlags(
         autoPlay: false,
         mute: false,
-        controlsVisibleAtStart: true,
+        controlsVisibleAtStart: false,
+        enableCaption: true,
       ),
     );
+
+    _youtubeController.addListener(() {
+      final isPlaying = _youtubeController.value.isPlaying;
+      if (isPlaying != _isPlaying) {
+        setState(() {
+          _isPlaying = isPlaying;
+          if (isPlaying) {
+            Future.delayed(Duration(seconds: 2), () {
+              if (mounted && _isPlaying) {
+                setState(() => _showPlayButton = false);
+              }
+            });
+          } else {
+            _showPlayButton = true;
+          }
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _model.dispose();
     _youtubeController.dispose();
+    _model.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: FlutterFlowTheme.of(context).primaryBackground,
-      appBar: CustomAppBar(
-        title: 'Home',
-        showDrawerButton: true,
-      ),
-      body: SafeArea(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        FlutterFlowTheme.of(context).primary,
-                        FlutterFlowTheme.of(context).secondary
-                      ],
-                      stops: [0.0, 1.0],
-                      begin: AlignmentDirectional(0.0, -1.0),
-                      end: AlignmentDirectional(0, 1.0),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        color: FlutterFlowTheme.of(context).primaryBackground,
+        child: Column(
+          children: [
+            // Status bar space
+            Container(
+              color: Colors.transparent,
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            ),
+            // Main content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Welcome Section
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(24, 16, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hi Jambohost,',
+                            style: GoogleFonts.poppins(
+                              fontSize: 28.0,
+                              fontWeight: FontWeight.w600,
+                              color: FlutterFlowTheme.of(context).primary,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Welcome to Kingdom Church',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              color: FlutterFlowTheme.of(context).primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(16.0, 40.0, 16.0, 16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            FlutterFlowIconButton(
-                              borderRadius: 20.0,
-                              buttonSize: 40.0,
-                              fillColor: Color(0x33FFFFFF),
-                              icon: Icon(
-                                Icons.menu,
-                                color: Colors.white,
-                                size: 24.0,
-                              ),
-                              onPressed: () {
-                                if (_scaffoldKey.currentState!.isDrawerOpen) {
-                                  _scaffoldKey.currentState!.closeDrawer();
-                                } else {
-                                  _scaffoldKey.currentState!.openDrawer();
-                                }
-                              },
+
+                    // YouTube Video Section
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(24, 0, 24, 32),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              offset: Offset(0, 2),
+                              blurRadius: 8,
                             ),
-                            Text(
-                              'Home',
-                              style: GoogleFonts.poppins(
-                                fontSize: 24.0,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(width: 40), // Balance the layout
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(24.0, 24.0, 24.0, 12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hi Bitwise,',
-                        style: GoogleFonts.poppins(
-                          fontSize: 28.0,
-                          fontWeight: FontWeight.bold,
-                          color: FlutterFlowTheme.of(context).primary,
-                        ),
-                      ),
-                      Text(
-                        'Welcome to Bitwise Church',
-                        style: GoogleFonts.poppins(
-                          fontSize: 20.0,
-                          color: FlutterFlowTheme.of(context).primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                // YouTube Video Section
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(40),
-                          offset: Offset(0, 2),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        height: 250,
-                        child: YoutubePlayer(
-                          controller: _youtubeController,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: Colors.red,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Trending Sermons Carousel
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'Trending Sermons',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                height: 220,
+                                child: YoutubePlayer(
+                                  controller: _youtubeController,
+                                  showVideoProgressIndicator: true,
+                                  progressIndicatorColor:
+                                      FlutterFlowTheme.of(context).primary,
+                                  progressColors: ProgressBarColors(
+                                    playedColor:
+                                        FlutterFlowTheme.of(context).primary,
+                                    handleColor:
+                                        FlutterFlowTheme.of(context).secondary,
+                                  ),
+                                  onReady: () {
+                                    setState(() => _showPlayButton = true);
+                                  },
+                                ),
+                              ),
+                              if (_showPlayButton)
+                                GestureDetector(
+                                  onTap: () {
+                                    if (_isPlaying) {
+                                      _youtubeController.pause();
+                                    } else {
+                                      _youtubeController.play();
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      _isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 42,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 200,
-                          viewportFraction: 0.8,
-                          enableInfiniteScroll: true,
-                          autoPlay: true,
-                          autoPlayInterval: Duration(seconds: 3),
-                          autoPlayAnimationDuration: Duration(milliseconds: 800),
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          enlargeCenterPage: true,
-                        ),
-                        items: sermonSlides.map((item) {
-                          return Container(
-                            margin: EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              image: DecorationImage(
-                                image: AssetImage(item),
-                                fit: BoxFit.cover,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(40),
-                                  offset: Offset(0, 2),
-                                  blurRadius: 4,
+                    ),
+
+                    // Trending Sermons Section
+                    Container(
+                      margin: EdgeInsets.only(bottom: 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Trending Sermons',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.w600,
+                                    color: FlutterFlowTheme.of(context).primary,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => context.pushNamed('sermons'),
+                                  child: Text(
+                                    'See All',
+                                    style: GoogleFonts.poppins(
+                                      color:
+                                          FlutterFlowTheme.of(context).primary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Shop Section
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Shop',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ShopWidget(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'View Shop',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.0,
-                            color: Color(0xFFE31E24),
-                            fontWeight: FontWeight.w600,
                           ),
-                        ),
+                          SizedBox(height: 16),
+                          CarouselSlider(
+                            options: CarouselOptions(
+                              height: 200,
+                              viewportFraction: 0.8,
+                              enableInfiniteScroll: true,
+                              autoPlay: true,
+                              autoPlayInterval: Duration(seconds: 3),
+                              autoPlayAnimationDuration:
+                                  Duration(milliseconds: 800),
+                              autoPlayCurve: Curves.fastOutSlowIn,
+                              enlargeCenterPage: true,
+                            ),
+                            items: sermonSlides.map((item) {
+                              return GestureDetector(
+                                onTap: () => context.pushNamed('sermons'),
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 5),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    image: DecorationImage(
+                                      image: AssetImage(item),
+                                      fit: BoxFit.cover,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        offset: Offset(0, 2),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  height: 280,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: shopItems.length,
-                    itemBuilder: (context, index) {
-                      final item = shopItems[index];
-                      return Container(
-                        width: 200,
-                        margin: EdgeInsets.only(
-                          left: index == 0 ? 16 : 8,
-                          right: index == shopItems.length - 1 ? 16 : 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              // ignore: deprecated_member_use
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 5,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Product Image
-                            ClipRRect(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(12),
+                    ),
+
+                    // Trending Products Section
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 16.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Trending Products',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                              child: Image.asset(
-                                item['image'] as String,
-                                width: double.infinity,
-                                height: 140,
-                                fit: BoxFit.cover,
+                              TextButton(
+                                onPressed: () {
+                                  context.pushNamed('shop');
+                                },
+                                child: Text(
+                                  'See All',
+                                  style: GoogleFonts.poppins(
+                                    color: FlutterFlowTheme.of(context).primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          // Products Carousel
+                          CarouselSlider(
+                            options: CarouselOptions(
+                              height: 180,
+                              viewportFraction: 0.4,
+                              enableInfiniteScroll: true,
+                              autoPlay: true,
+                              autoPlayInterval: Duration(seconds: 3),
+                              autoPlayAnimationDuration:
+                                  Duration(milliseconds: 800),
+                              autoPlayCurve: Curves.fastOutSlowIn,
                             ),
-                            // Product Details
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.all(12),
+                            items: shopItems.map((item) {
+                              return Container(
+                                margin: EdgeInsets.symmetric(horizontal: 5),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    // Title
-                                    Text(
-                                      item['title'] as String,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16.0,
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.asset(
+                                        item['image'],
+                                        height: 140,
+                                        width: 100,
+                                        fit: BoxFit.cover,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    SizedBox(height: 4),
-                                    // Price
+                                    SizedBox(height: 8),
                                     Text(
-                                      'Ksh ${item['price']}',
+                                      'KES ${item['price']}',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 16.0,
-                                        color: Color(0xFFE31E24),
+                                        color: FlutterFlowTheme.of(context)
+                                            .primary,
                                         fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    // Add to Cart Button
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          final cartProvider = Provider.of<CartProvider>(context, listen: false);
-                                          final cartItem = CartItem(
-                                            id: item['id'],
-                                            title: item['title'],
-                                            price: double.parse(item['price'].toString()),
-                                            image: item['image'],
-                                            author: item['author'] ?? '',
-                                          );
-                                          cartProvider.addItem(cartItem);
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Added to cart'),
-                                              duration: Duration(seconds: 2),
-                                              backgroundColor: Color(0xFFE31E24),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFFE31E24),
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          padding:
-                                              EdgeInsets.symmetric(vertical: 8),
-                                        ),
-                                        child: Text(
-                                          'Add to Cart',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 14.0,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Upcoming Events Section
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(24, 0, 24, 32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            color: FlutterFlowTheme.of(context).primary,
+                            child: Text(
+                              'UPCOMING EVENTS',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Upcoming Events Section
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(20),
-                        offset: Offset(0, 2),
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        child: Image.asset(
-                          'assets/images/upcomingevents.jpg',
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'Upcoming Events',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
+                          SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () => context.pushNamed('events'),
+                            child: Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                image: DecorationImage(
+                                  image: AssetImage(
+                                      'assets/images/upcomingevents.jpg'),
+                                  fit: BoxFit.cover,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    offset: Offset(0, 2),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => context.pushNamed('events'),
+                              child: Text(
+                                'View All Events',
+                                style: GoogleFonts.poppins(
+                                  color: FlutterFlowTheme.of(context).primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

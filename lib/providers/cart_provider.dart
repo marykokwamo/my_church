@@ -1,66 +1,138 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/cart_item.dart';
+import 'base_provider.dart';
 
-class CartProvider with ChangeNotifier {
-  List<CartItem> _items = [];
+class CartProvider extends BaseProvider {
+  Map<String, CartItem> _items = {};
   static const String _storageKey = 'cart_items';
 
-  List<CartItem> get items => [..._items];
-
+  Map<String, CartItem> get items => {..._items};
   int get itemCount => _items.length;
 
   double get totalAmount {
-    return _items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+    var total = 0.0;
+    _items.forEach((key, cartItem) {
+      total += cartItem.price * cartItem.quantity;
+    });
+    return total;
   }
 
   Future<void> loadItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? cartJson = prefs.getString(_storageKey);
-    if (cartJson != null) {
-      final List<dynamic> decodedData = json.decode(cartJson);
-      _items = decodedData.map((item) => CartItem.fromMap(item)).toList();
-      notifyListeners();
-    }
+    await wrapError(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final String? cartJson = prefs.getString(_storageKey);
+      if (cartJson != null) {
+        final List<dynamic> decodedData = json.decode(cartJson);
+        _items = decodedData.map((item) => CartItem.fromMap(item)).fold({}, (map, item) => map..[item.id] = item);
+        notifyListeners();
+      }
+    });
   }
 
   Future<void> _saveItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedData = json.encode(_items.map((item) => item.toMap()).toList());
-    await prefs.setString(_storageKey, encodedData);
+    await wrapError(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = json.encode(_items.values.map((item) => item.toMap()).toList());
+      await prefs.setString(_storageKey, encodedData);
+    });
   }
 
-  void addItem(CartItem item) {
-    final existingItemIndex = _items.indexWhere((i) => i.id == item.id);
-    if (existingItemIndex >= 0) {
-      _items[existingItemIndex].quantity += 1;
-    } else {
-      _items.add(item);
-    }
-    notifyListeners();
-    _saveItems();
-  }
-
-  void removeItem(String id) {
-    _items.removeWhere((item) => item.id == id);
-    notifyListeners();
-    _saveItems();
-  }
-
-  void updateQuantity(String id, int quantity) {
-    if (quantity < 1) return;
-    final itemIndex = _items.indexWhere((item) => item.id == id);
-    if (itemIndex >= 0) {
-      _items[itemIndex].quantity = quantity;
+  Future<void> addItem(String productId, double price, String title, String image, {String author = ''}) async {
+    await wrapError(() async {
+      if (_items.containsKey(productId)) {
+        _items.update(
+          productId,
+          (existingCartItem) => CartItem(
+            id: existingCartItem.id,
+            title: existingCartItem.title,
+            price: existingCartItem.price,
+            quantity: existingCartItem.quantity + 1,
+            image: existingCartItem.image,
+            author: existingCartItem.author,
+          ),
+        );
+      } else {
+        _items.putIfAbsent(
+          productId,
+          () => CartItem(
+            id: DateTime.now().toString(),
+            title: title,
+            price: price,
+            quantity: 1,
+            image: image,
+            author: author,
+          ),
+        );
+      }
       notifyListeners();
-      _saveItems();
-    }
+      await _saveItems();
+    });
   }
 
-  void clear() {
-    _items.clear();
-    notifyListeners();
-    _saveItems();
+  Future<void> removeItem(String productId) async {
+    await wrapError(() async {
+      _items.remove(productId);
+      notifyListeners();
+      await _saveItems();
+    });
+  }
+
+  Future<void> removeSingleItem(String productId) async {
+    await wrapError(() async {
+      if (!_items.containsKey(productId)) {
+        return;
+      }
+      if (_items[productId]!.quantity > 1) {
+        _items.update(
+          productId,
+          (existingCartItem) => CartItem(
+            id: existingCartItem.id,
+            title: existingCartItem.title,
+            price: existingCartItem.price,
+            quantity: existingCartItem.quantity - 1,
+            image: existingCartItem.image,
+            author: existingCartItem.author,
+          ),
+        );
+      } else {
+        _items.remove(productId);
+      }
+      notifyListeners();
+      await _saveItems();
+    });
+  }
+
+  Future<void> updateQuantity(String productId, int newQuantity) async {
+    await wrapError(() async {
+      if (!_items.containsKey(productId)) {
+        return;
+      }
+      if (newQuantity <= 0) {
+        await removeItem(productId);
+      } else {
+        _items.update(
+          productId,
+          (existingCartItem) => CartItem(
+            id: existingCartItem.id,
+            title: existingCartItem.title,
+            price: existingCartItem.price,
+            quantity: newQuantity,
+            image: existingCartItem.image,
+            author: existingCartItem.author,
+          ),
+        );
+        notifyListeners();
+        await _saveItems();
+      }
+    });
+  }
+
+  Future<void> clear() async {
+    await wrapError(() async {
+      _items = {};
+      notifyListeners();
+      await _saveItems();
+    });
   }
 }

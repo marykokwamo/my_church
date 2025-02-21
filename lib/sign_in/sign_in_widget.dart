@@ -238,7 +238,7 @@ class _SignInWidgetState extends State<SignInWidget> {
                                           fontFamily: FlutterFlowTheme.of(context)
                                               .bodyMediumFamily,
                                           color:
-                                              FlutterFlowTheme.of(context).accent1,
+                                              FlutterFlowTheme.of(context).primaryText,
                                           fontSize: 16.0,
                                           letterSpacing: 0.0,
                                           useGoogleFonts: GoogleFonts.asMap()
