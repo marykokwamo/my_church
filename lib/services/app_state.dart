@@ -1,62 +1,104 @@
-// TODO Implement this library.
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// AppState manages the global application state using ChangeNotifier pattern.
+/// This includes user preferences, authentication state, and app settings.
 class AppState extends ChangeNotifier {
+  // Singleton instance
+  static final AppState _instance = AppState._internal();
+  factory AppState() => _instance;
+  AppState._internal();
+
+  // SharedPreferences instance
+  late SharedPreferences _prefs;
+
   // Theme mode state
   ThemeMode _themeMode = ThemeMode.light;
   ThemeMode get themeMode => _themeMode;
 
-  // Notifications state
-  bool _notificationsEnabled = true;
-  bool get notificationsEnabled => _notificationsEnabled;
+  // Authentication state
+  bool _isAuthenticated = false;
+  bool get isAuthenticated => _isAuthenticated;
+  String? _phoneNumber;
+  String? get phoneNumber => _phoneNumber;
 
-  // Preferences keys
-  static const String _themeModeKey = 'theme_mode';
-  static const String _notificationsKey = 'notifications_enabled';
+  // Church selection state
+  String? _selectedChurchId;
+  String? get selectedChurchId => _selectedChurchId;
+  String? _selectedChurchName;
+  String? get selectedChurchName => _selectedChurchName;
 
-  // Constructor - Load saved preferences
-  AppState() {
-    _loadPreferences();
-  }
-
-  // Load saved preferences
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
+  // Initialize the app state
+  Future<void> initializeAppState() async {
+    _prefs = await SharedPreferences.getInstance();
     
     // Load theme mode
-    final savedThemeMode = prefs.getString(_themeModeKey);
-    if (savedThemeMode != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-        (mode) => mode.toString() == savedThemeMode,
-        orElse: () => ThemeMode.light,
-      );
-    }
+    final isDark = _prefs.getBool('isDarkMode') ?? false;
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
 
-    // Load notifications state
-    _notificationsEnabled = prefs.getBool(_notificationsKey) ?? true;
+    // Load authentication state
+    _isAuthenticated = _prefs.getBool('isAuthenticated') ?? false;
+    _phoneNumber = _prefs.getString('phoneNumber');
+
+    // Load church selection
+    _selectedChurchId = _prefs.getString('selectedChurchId');
+    _selectedChurchName = _prefs.getString('selectedChurchName');
+
+    notifyListeners();
+  }
+
+  // Theme mode methods
+  void setThemeMode(ThemeMode mode) async {
+    if (_themeMode == mode) return;
+    
+    _themeMode = mode;
+    await _prefs.setBool('isDarkMode', mode == ThemeMode.dark);
+    notifyListeners();
+  }
+
+  // Authentication methods
+  Future<void> signIn(String phoneNumber) async {
+    _isAuthenticated = true;
+    _phoneNumber = phoneNumber;
+    
+    await _prefs.setBool('isAuthenticated', true);
+    await _prefs.setString('phoneNumber', phoneNumber);
     
     notifyListeners();
   }
 
-  // Update theme mode
-  Future<void> setThemeMode(ThemeMode mode) async {
-    if (_themeMode == mode) return;
-
-    _themeMode = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_themeModeKey, mode.toString());
+  Future<void> signOut() async {
+    _isAuthenticated = false;
+    _phoneNumber = null;
+    _selectedChurchId = null;
+    _selectedChurchName = null;
+    
+    await _prefs.setBool('isAuthenticated', false);
+    await _prefs.remove('phoneNumber');
+    await _prefs.remove('selectedChurchId');
+    await _prefs.remove('selectedChurchName');
+    
     notifyListeners();
   }
 
-  // Toggle notifications
-  Future<void> toggleNotifications(bool enabled) async {
-    if (_notificationsEnabled == enabled) return;
+  // Church selection methods
+  Future<void> selectChurch(String churchId, String churchName) async {
+    _selectedChurchId = churchId;
+    _selectedChurchName = churchName;
+    
+    await _prefs.setString('selectedChurchId', churchId);
+    await _prefs.setString('selectedChurchName', churchName);
+    
+    notifyListeners();
+  }
 
-    _notificationsEnabled = enabled;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_notificationsKey, enabled);
+  Future<void> clearChurchSelection() async {
+    _selectedChurchId = null;
+    _selectedChurchName = null;
+    
+    await _prefs.remove('selectedChurchId');
+    await _prefs.remove('selectedChurchName');
+    
     notifyListeners();
   }
 }
